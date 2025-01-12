@@ -108,8 +108,8 @@ export default class Bank {
         break;
       } else {
         amount -= thisBankAccount.getBalance();
-        thisBankAccount.setBalance(0);
         BsBankAccount.setBalance(BsBankAccount.getBalance() + thisBankAccount.getBalance());
+        thisBankAccount.setBalance(0);
       }
     }
   }
