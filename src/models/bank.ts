@@ -1,7 +1,7 @@
 import { BankAccountId, UserId, BankId } from "@/types/Common";
 import BankAccount from "./bank-account";
 import GlobalRegistry from "@/services/GlobalRegistry";
-import {ac} from "vitest/dist/chunks/reporters.D7Jzd9GS";
+import { ac } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 
 export default class Bank {
   private id: BankId
@@ -26,7 +26,7 @@ export default class Bank {
   }
 
 
-  static create(props: {isNegativeAllowed?: boolean} = {}) {
+  static create(props: { isNegativeAllowed?: boolean } = {}) {
     return Bank.BankFactory.create(!!props?.isNegativeAllowed);
   }
 
@@ -76,28 +76,41 @@ export default class Bank {
 
     const BsBankAccount = GlobalRegistry.getBankForBankAccountId(validAccountsB[0]).getAccount(validAccountsB[0]);
 
-    let transactionAccount: BankAccount | null = null;
+    if (this.allowNegativeBalance) {
+      const account = validAccountsA[0];
+      const thisBankAccount = GlobalRegistry.getBankForBankAccountId(account).getAccount(account);
+
+      thisBankAccount.setBalance(thisBankAccount.getBalance() - amount);
+      BsBankAccount.setBalance(BsBankAccount.getBalance() + amount);
+
+      return;
+    }
+
+    let totalAmountInAccounts = 0
+
+    for (let i = 0; i < validAccountsA.length; i++) {
+      const account = validAccountsA[i];
+      const thisBankAccount = GlobalRegistry.getBankForBankAccountId(account).getAccount(account);
+      totalAmountInAccounts += thisBankAccount.getBalance();
+    }
+
+    if (totalAmountInAccounts < amount) {
+      throw new Error("Insufficient funds")
+    }
 
     for (let i = 0; i < validAccountsA.length; i++) {
       const account = validAccountsA[i];
       const thisBankAccount = GlobalRegistry.getBankForBankAccountId(account).getAccount(account);
 
-      if (this.allowNegativeBalance) {
-        transactionAccount = thisBankAccount;
-        break;
-      }
-
       if (amount <= thisBankAccount.getBalance()) {
-        transactionAccount = thisBankAccount;
+        thisBankAccount.setBalance(thisBankAccount.getBalance() - amount);
+        BsBankAccount.setBalance(BsBankAccount.getBalance() + amount);
         break;
+      } else {
+        amount -= thisBankAccount.getBalance();
+        thisBankAccount.setBalance(0);
+        BsBankAccount.setBalance(BsBankAccount.getBalance() + thisBankAccount.getBalance());
       }
-    }
-
-    if (transactionAccount) {
-      transactionAccount.setBalance(transactionAccount.getBalance() - amount);
-      BsBankAccount.setBalance(BsBankAccount.getBalance() + amount);
-    } else {
-      throw new Error("Insufficient funds")
     }
   }
 }
