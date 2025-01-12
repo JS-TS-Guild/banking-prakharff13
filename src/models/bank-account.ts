@@ -23,4 +23,12 @@ export default class BankAccount {
   public getId() {
     return this.id;
   }
+
+  public getBalance() {
+    return this.amount;
+  }
+
+  public setBalance(amount: number) {
+    this.amount = amount;
+  }
 }

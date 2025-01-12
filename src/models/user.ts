@@ -1,3 +1,4 @@
+import GlobalRegistry from "@/services/GlobalRegistry";
 import { BankAccountId, UserId } from "@/types/Common";
 
 export default class User {
@@ -35,6 +36,8 @@ export default class User {
     accounts.forEach((acc) => {
       this.AccountIds.push(acc);
     })
+
+    GlobalRegistry.addUserIdToBankAccountIdMap(this.id, accounts);
   }
 
   public getId() {
